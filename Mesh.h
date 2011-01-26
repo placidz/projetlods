@@ -46,7 +46,14 @@ struct _Face
 
 class Mesh
 {
+	
+
 public:
+	static int __MeshCounter__ = 0;
+	static int __VertCounter__ = 0;
+	static int __EdgeCounter__ = 0;
+	static int __FaceCounter__ = 0;
+
     int id;
     std::list<Vert*> verts;
     std::list<Edge*> edges;
@@ -55,7 +62,10 @@ public:
     Mesh();
 
     void edgeCollapse(Edge* _edgeToDelete);
-    void loadOBJ();
+	int load(Mesh* _out, const char * _path);
+    void loadOBJ(Mesh* _out, FILE * _file);
+	Vert* list_Find_Data(list<Edges*> _out, Vert* _data);
+	Face* face_Build(list<Vert*> _lstVerts, list<Edge*> _lstEdges);
     void draw();
 };
 
