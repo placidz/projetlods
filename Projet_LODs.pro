@@ -1,3 +1,9 @@
+TEMPLATE = app
+
+QT += opengl
+
+INCLUDEPATH += .
+win32:LIBS += -L. -lglut32
 
 HEADERS += \
     Mesh.h \
@@ -6,5 +12,3 @@ HEADERS += \
 SOURCES += \
     main.cpp \
     Mesh.cpp
-
-OTHER_FILES +=
