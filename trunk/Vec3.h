@@ -26,6 +26,8 @@ public:
     void setY(T _value) { m_values[1] = _value; }
     void setZ(T _value) { m_values[2] = _value; }
     void set(Vec3<T> _vector) { setX(_vector.x()); setY(_vector.y()); setZ(_vector.z()); }
+    void set(T _k) { setX(_k); setY(_k); setZ(_k); }
+    void setZero() { set(0); }
 
     T* toArray() { return m_values; }
 };
