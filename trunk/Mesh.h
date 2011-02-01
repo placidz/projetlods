@@ -1,59 +1,21 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+#include <string.h>
 #include <list>
-#include "Vec3.h"
 
-typedef struct _Vert    Vert;
-typedef struct _Vert *  ptrVert;
+#include <Edge.h>
+#include <Vert.h>
+#include <Face.h>
 
-typedef struct _Edge    Edge;
-typedef struct _Edge *  ptrEdge;
-
-typedef struct _Face    Face;
-typedef struct _Face *  ptrFace;
-
-struct _Vert
-{
-    int id;
-
-    Vec3d pos;
-    Vec3d normal;
-    Vec3d color;
-
-    std::list<Edge*> edges;
-};
-
-struct _Edge
-{
-    int id;
-
-    Vert* head;
-    Vert* tail;
-    Edge* twin;
-
-    std::list<Face*> faces;
-};
-
-struct _Face
-{
-    int id;
-
-    Vec3d normal;
-
-    std::list<Edge*> edges;
-};
+typedef struct Mesh * ptrMesh;
 
 class Mesh
 {
-	
-
 public:
-	static int __MeshCounter__ = 0;
-	static int __VertCounter__ = 0;
-	static int __EdgeCounter__ = 0;
-	static int __FaceCounter__ = 0;
-
     int id;
     std::list<Vert*> verts;
     std::list<Edge*> edges;
@@ -61,11 +23,12 @@ public:
 
     Mesh();
 
+    void clear();
     void edgeCollapse(Edge* _edgeToDelete);
-	int load(Mesh* _out, const char * _path);
-    void loadOBJ(Mesh* _out, FILE * _file);
-	Vert* list_Find_Data(list<Edges*> _out, Vert* _data);
-	Face* face_Build(list<Vert*> _lstVerts, list<Edge*> _lstEdges);
+    int load(const char * _path);
+    int loadOBJ(FILE * _file);
+    Vert* list_Find_Data(std::list<Edge*> _out, Vert* _data);
+    Face* face_Build(std::list<Vert*> _lstVerts, std::list<Edge*> _lstEdges);
     void draw();
 };
 
