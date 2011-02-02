@@ -25,7 +25,9 @@ public:
 
     Vert();
     Vert(int _id);
+    Vert(Vert* _v);
     ~Vert();
+
 };
 
 #endif // VERT_H

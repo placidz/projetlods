@@ -18,3 +18,11 @@ Vert::~Vert()
 {
     edges.clear();
 }
+
+void Vert::Vert(Vert* _v){
+    this->id = _v->id;
+    this->pos = _v->pos;
+    this->color = _v->color;
+    this->normal = _v->normal;
+    this->tex = _v->tex;
+}
