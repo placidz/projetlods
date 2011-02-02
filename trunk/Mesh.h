@@ -27,7 +27,7 @@ public:
     void edgeCollapse(Edge* _edgeToDelete);
     int load(const char * _path);
     int loadOBJ(FILE * _file);
-    Vert* list_Find_Data(std::list<Edge*> _out, Vert* _data);
+    Edge* list_Find_Data(std::list<Edge*> _out, Vert* _data);
     Face* face_Build(std::list<Vert*> _lstVerts, std::list<Edge*> _lstEdges);
     void draw();
 };

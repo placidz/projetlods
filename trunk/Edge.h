@@ -21,7 +21,9 @@ public:
 
     Edge();
     Edge(int _id, Vert* _tail, Vert* _head);
+    Edge(Edge* _e);
     ~Edge();
+
 };
 
 #endif // EDGE_H

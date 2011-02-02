@@ -67,7 +67,7 @@ int Mesh::load(const char * _path)
 int Mesh::loadOBJ(FILE *_file)
 {
     char			buf[512], * c;
-    int				i, err, v, n, t;
+    int				/*i,*/ err, v, n, t;
     int 			nv, nf, nt;
 
     //hePtrList		edges;
@@ -192,7 +192,7 @@ int Mesh::loadOBJ(FILE *_file)
                 }
             }
 
-            if((*currentF = __heFace_Build__(&face, edges)) == NULL)
+            if((*currentF = face_Build(face, edges)) == NULL)
                 return -1;
 
             ++currentF;
@@ -200,13 +200,15 @@ int Mesh::loadOBJ(FILE *_file)
     }
 
     //_out->nEdges = edges->size;
-    _out->edges  = (hePtrEdge *)malloc(sizeof(hePtrEdge) * edges->size);
-
+    //_out->edges  = (hePtrEdge *)malloc(sizeof(hePtrEdge) * edges->size);
+/*
     for(i = 0, it = edges->head; it != NULL; it = it->next, ++i)
-        _out->edges[i] = (hePtrEdge)it->data;
+        this->edges[i] = (hePtrEdge)it->data;
 
     free(texes);
-    heList_Free(&edges);
+    //heList_Free(&edges);
+    edges.clear();
+*/
     return 0;
 }
 
@@ -218,17 +220,18 @@ void Mesh::draw()
 
 //A verifier
 /*hePtrListItem heList_Find_Data(hePtrList _out, ptrVoid _data, int (*_compare)(ptrVoid _a, ptrVoid _b))*/
-Vert* Mesh::list_Find_Data(std::list<Edge*> _out, Vert* _data)
+Edge* Mesh::list_Find_Data(std::list<Edge*> _out, Vert* _data)
 {
     /*hePtrListItem it;*/
-    list<Edge*>::iterator it;
+    std::list<Edge*>::iterator it;
 
     /*for(it = _out->head; it != NULL; it = it->next)*/
     for(it = _out.begin(); it != _out.end(); it++)
     {
+
         /*if((*_compare)(it->data, _data) == 0)*/
-        if(it->data == _data)//suppose que it->data pointe sur un vertex
-            return it;
+        if((*it)->head == _data)
+            return (*it);
     }
 
     return NULL;
@@ -246,65 +249,69 @@ Face* Mesh::face_Build(std::list<Vert*> _lstVerts, std::list<Edge*> _lstEdges)
         hePtrVert         vh, vt;*/
     Face* out;
     Edge* e;
-    list<Edge*>::iterator it;
-    list<Face*>::iterator itf;
-    Vert* vh, vt;
+    std::list<Vert*>::iterator it;
+    //std::list<Edge*>::iterator itf;
+    Edge* itf;
+    Vert * vh;
+    Vert * vt;
 
-    if(_lstVerts->size < 3)
+    if(_lstVerts.size() < 3)
         return NULL;
 
-    out = heFace_New(__heFaceCounter__++);
+    //out = heFace_New(__heFaceCounter__++);
+    out = new Face(__FaceCounter__++);
 
     /*heList_Init(&out->edges);*/
     //Rien
-    mlVec3_Zero(out->normal);
+    //mlVec3_Zero(out->normal); //de base dans le constructeur
 
 
     /*for(it = _verts->head; it != NULL; it = it->next)*/
-    for(it = _lstVerts->begin(); it != _lstVerts->end(); it++)
+    for(it = _lstVerts.begin(); it != _lstVerts.end(); it++)
     {
         /*vt = (hePtrVert)it->data;*/
-        vt = it->data; //ou juste it ?
+        vt = new Vert(*it); //copie les données de it dans vt
 
         /*if(it->next == NULL)*/
-        if(it == _lstVerts->end())
+        //if(it == _lstVerts.end())
             /*vh = (hePtrVert)_verts->head->data;*/
-            vh = _lstVerts->head->data;
-        else
+            //vh->set(*it);
+        //else
             /*vh = (hePtrVert)it->next->data;*/
-            vh = it->next->data;
+            //vh = it->next->data;
+            vh = new Vert(*it);
 
         /*itf = heList_Find_Data(&vt->edges, vh, __heEdge_Find_Edge__);*/
-        itf = list_Find_Data(&vt->edges, vh);// suppose que &vt->edges est une list<Edges*>
+        itf = new Edge(list_Find_Data(vt->edges, vh));// suppose que &vt->edges est une list<Edges*>
 
         if(itf == NULL)
         {
             /*e  = heEdge_New(__heEdgeCounter__++, vh, vt);*/
-            e  = new Edge(__heEdgeCounter__++, vh, vt);
+            e  = new Edge(__EdgeCounter__++, vh, vt);
             /*heList_Push_Back(_edges, e);*/
-            lstEdges.push_back(e);
+            _lstEdges.push_back(e);
             /*heList_Push_Back(&vh->edges, e);*/
-            &vh->edges.push_back(e);
+            vh->edges.push_back(e);
 
-            e->twin = new Edge(__heEdgeCounter__++, vt, vh);
+            e->twin = new Edge(__EdgeCounter__++, vt, vh);
             e->twin->twin = e;//semble ok
             e = e->twin;//semble ok
 
             /*heList_Push_Back(_edges, e);*/
-            lstEdges.push_back(e);
+            _lstEdges.push_back(e);
             /*heList_Push_Back(&vt->edges, e);*/
-            &vt->edges.push_back(e);
+            vt->edges.push_back(e);
         }
         else
         {
             /*e = (hePtrEdge)itf->data;*/
-            e = itf->data;// ou juste itf?
+            e  = new Edge(itf);
         }
 
         /*heList_Push_Back(&out->edges, e);
                 heList_Push_Back(&e->faces, out);*/
-        &out->edges.push_back(e);
-        &e->faces.push_back(out);
+        out->edges.push_back(e);
+        e->faces.push_back(out);
     }
 
     return out;
