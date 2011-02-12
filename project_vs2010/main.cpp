@@ -7,16 +7,27 @@
 #include <string>
 
 // ----------------------- OpenGL & co.
-#include <GL/glut.h>
+#include "GL\glut.h"
 
 // ----------------------- OpenMesh
+//#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <OpenMesh/Core/IO/MeshIO.hh>
-#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+#include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
+#include <OpenMesh/Core/System/config.h>
+#include <OpenMesh/Core/Mesh/Status.hh>
+
+struct MyTraits : public OpenMesh::DefaultTraits
+{
+  VertexAttributes(OpenMesh::Attributes::Status);
+  FaceAttributes(OpenMesh::Attributes::Status);
+  EdgeAttributes(OpenMesh::Attributes::Status);
+};
 
 // ------------------------------------------------------------
-typedef OpenMesh::TriMesh_ArrayKernelT<> MyMesh;
+//typedef OpenMesh::TriMesh_ArrayKernelT<> MyMesh;
 typedef OpenMesh::Vec3d Point;
 typedef OpenMesh::Vec3d Normal;
+typedef OpenMesh::PolyMesh_ArrayKernelT<MyTraits>  MyMesh;
 
 // ------------------------------------------------------------
 
@@ -24,6 +35,74 @@ int glut_window1;
 
 MyMesh mesh;
 
+void buildTheFaces(MyMesh& _mesh)
+{
+	MyMesh::FaceIter f_it;
+	MyMesh::FaceVertexIter fv_it;
+	int nbVert = 0;
+	int bval = 0;
+
+	for (f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
+	{
+		for(fv_it = _mesh.fv_iter(f_it.handle()); fv_it; ++fv_it )
+		{
+			nbVert++;
+			//std::cout<<"Test val nbVert = "<<nbVert<<std::endl;
+		}
+
+		if(nbVert > bval)
+		{
+			bval = nbVert;
+			//_mesh.triangulate(f_it.handle() );
+			std::cout<<"nbVert = "<<nbVert<<std::endl;
+			std::cout<<"bval = "<<bval<<std::endl;
+		}
+		nbVert = 0;
+	}
+}
+
+void removeThePoint(MyMesh& _mesh, MyMesh::VertexHandle _hVert)
+{
+	_mesh.delete_vertex(_hVert, true);//Mark vertex as deleted (put it on garbage_collection)
+	_mesh.garbage_collection();	//Remove the vertex from memory
+
+	buildTheFaces(_mesh);//triangulate the face where the vertex has been removed
+	//_mesh.triangulate();
+	//std::cout<<"plop"<<std::endl;
+}
+
+void computeSchroeder(MyMesh& _mesh)
+{
+	MyMesh::VertexIter v_it;
+	MyMesh::VertexIHalfedgeIter vh_it;
+	MyMesh::VertexFaceIter vf_it;
+	bool readyToDelete = true;
+	int i = 0; 
+
+
+	for (v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
+	{
+		//verifier que les arretes par lequelles il est relié a ses voisins ont bien toutes une twin
+		// Get the vertex-face circulator of vertex _vh
+		for(vh_it = _mesh.vih_iter(v_it.handle()); vh_it; ++vh_it )
+		{
+			if(_mesh.is_boundary(vh_it) ==  true)//si demi arrete est une bordure (pas de twin / bord du mesh)
+				readyToDelete = false;
+		}
+		
+		if(readyToDelete)
+		{
+			//for(vf_it = _mesh.vf_iter( v_it.handle() ); vf_it; ++vf_it)
+				//removeTheFace(_mesh, vf_it.handle() );
+			removeThePoint(_mesh, v_it.handle() );
+			
+		}
+		readyToDelete = true;
+		
+
+	}
+
+}
 
 void drawBase()
 {
@@ -59,6 +138,7 @@ void drawMesh(MyMesh _mesh)
 	Point normal;
 	//glPointSize(5.0);
 	//glColor3ub(255, 0, 0);
+	
 	for (f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
 	{
 		glBegin(GL_TRIANGLES);
@@ -153,7 +233,12 @@ void callback_resize(int _width, int _height)
 
 void callback_keyboard(unsigned char _key, int _x, int _y)
 {
-
+	switch(_key){
+	case'm':
+		computeSchroeder(mesh);
+		break;
+	}
+	glutPostRedisplay();
 }
 
 int main(int argc, char **argv)
