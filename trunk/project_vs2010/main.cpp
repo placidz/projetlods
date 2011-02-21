@@ -220,8 +220,8 @@ void removeThePoint(MyMesh* _mesh, MyMesh::VertexHandle _hVert)
 	
 	//_mesh->new_face();
 
-for(int i = 0; i < (int)lstEh.size(); i++)
-	_mesh->delete_edge(lstEh[i]);
+	for(int i = 0; i < (int)lstEh.size(); i++)
+		_mesh->delete_edge(lstEh[i]);
 
 	
 	_mesh->delete_vertex( _hVert, false );
